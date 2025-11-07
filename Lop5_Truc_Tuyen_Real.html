@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Bài kiểm tra Tiếng Anh Lớp 5</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;background:#f7f9fb;color:#222;padding:24px;max-width:980px;margin:0 auto}
+h1{text-align:center;color:#1f3a57}
+.panel{background:#fff;padding:14px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:14px}
+label{display:block;margin-bottom:6px;font-weight:600}
+input[type=text]{width:100%;padding:8px;border:1px solid #d5dbe6;border-radius:6px}
+.question{margin-bottom:12px;padding:12px;border-radius:8px;border:1px solid #eef2f7;background:#fbfdff}
+.choices label{display:block;margin:6px 0}
+.correct{border-left:6px solid #28a745;padding-left:8px}
+.incorrect{border-left:6px solid #d9534f;padding-left:8px}
+#timer{font-weight:700;color:#e03a3a;text-align:center;margin-bottom:8px}
+button{background:#1f3a57;color:#fff;padding:10px 14px;border:none;border-radius:6px;cursor:pointer}
+button.secondary{background:#6c7a89}
+.controls{text-align:center;margin-top:12px}
+#result{font-weight:700;text-align:center;margin-top:12px}
+.small{font-size:0.9rem;color:#556}
+</style>
+</head>
+<body>
+<h1>BÀI KIỂM TRA NĂNG LỰC TIẾNG ANH LỚP 5</h1>
+<div class="panel">
+  <div class="small">Thời gian làm bài: <strong>45 phút</strong>.</div>
+  <div style="margin-top:10px">
+    <label>Họ và tên học sinh:</label>
+    <input id="studentName" type="text" placeholder="Nhập họ tên">
+    <label style="margin-top:8px">Lớp:</label>
+    <input id="studentClass" type="text" placeholder="Nhập lớp (VD: 5A)">
+  </div>
+</div>
+<div id="preStart" class="panel" style="text-align:center">
+  <div id="timer" style="display:none">45:00</div>
+  <button id="startBtn">Bắt đầu kiểm tra</button>
+</div>
+<form id="quizForm" style="display:none">
+  <div id="questionsContainer"></div>
+  <div class="controls">
+    <button type="button" onclick="submitQuiz()">Nộp bài</button>
+    <button type="button" class="secondary" onclick="saveDraft()">Lưu tạm</button>
+    <button type="button" class="secondary" onclick="clearDraft()">Xóa bản lưu</button>
+  </div>
+</form>
+<div id="result" class="panel" style="display:none"></div>
+<div style="text-align:center; margin-top:12px">
+  <button id="downloadBtn" style="display:none" onclick="downloadCSV()">Tải kết quả (CSV)</button>
+  <button id="sendEmailBtn" style="display:none" onclick="sendEmail()">Gửi kết quả cho giáo viên</button>
+</div>
+<script>
+const TEACHER_EMAIL = "mayushan83@gmail.com";
+const TOTAL_SECONDS = 45 * 60;
+const questions = [{'q': 'Question 1: My house is ______ to the cinema.A. onB. inC. atD. next', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 1: My house is ______ to the cinema.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 2: Yesterday, my mother ______ a new dress for me.A. buyedB. buyingC. boughtD. buys', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 2: Yesterday, my mother ______ a new dress for me.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 3: What did you buy on your summer ______?A. dayB. schoolC. lessonD. holiday', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 3: What did you buy on your summer ______?', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': "Question 4: I don't like playing chess, but I ______ play the piano.A. notB. don'tC. can'tD. isn't", 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': "Question 4: I don't like playing chess, but I ______ play the piano.", 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 5: We usually have lunch ______ eleven thirty a.m.A. onB. inC. atD. to', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 5: We usually have lunch ______ eleven thirty a.m.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 6: My mother and father ______ to Ha Long Bay last year.A. goB. goingC. wentD. goes', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 6: My mother and father ______ to Ha Long Bay last year.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 7: There are a lot of interesting ______ in the museum.A. buildingB. pictureC. objectsD. object', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 7: There are a lot of interesting ______ in the museum.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 8: Would you like to ______ skipping rope with me?A. doB. rideC. goD. play', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 8: Would you like to ______ skipping rope with me?', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 9: The post office is ______ the cinema.A. next toB. behindC. inD. in front of', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 9: The post office is ______ the cinema.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 10: They ______ to the beach three days ago.A. goB. are goingC. wentD. goes', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 10: They ______ to the beach three days ago.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 11: A: Where do you live?A. I live on the city.B. I live on the first floor.C. I live in the street.D. I live at school.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 11: A: Where do you live?', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 12: A: What did you do yesterday?A. I do homework.B. I visited my grandma.C. I like my holiday.D. I went to school.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 12: A: What did you do yesterday?', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': "Question 13: A: Did they go to the zoo?A. No, they didn't.B. Yes, they are.C. They are going.D. They went to the beach.", 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 13: A: Did they go to the zoo?', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 14: A: How many students are there in your class?A. There are a lot.B. There are thirty.C. There is twenty.D. My class is big.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 14: A: How many students are there in your class?', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 15: A: Would you like to buy some lemonade?A. I like water.B. Yes, I would love to.C. No, thank you.D. I’m playing.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 15: A: Would you like to buy some lemonade?', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 16: A: What’s your nationality?A. I’m Vietnamese.B. I’m from Viet Nam.C. I like Viet Nam.D. I’m 10 years old.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 16: A: What’s your nationality?', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 17: A: How often do you go to the library?A. I went to the library.B. I sometimes go there.C. I can go there.D. I’m going there now.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 17: A: How often do you go to the library?', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 18: A: Did your parents go to Ha Long Bay last year?A. Do, they did.B. Are, they were.C. Was, they was.D. Yes, they did.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 18: A: Did your parents go to Ha Long Bay last year?', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 19: A: Where is the bookstore?A. It is a big building.B. It’s between the school and the bank.C. It has many things.D. I went there.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 19: A: Where is the bookstore?', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 20: A: What time is it now?A. It’s Tuesday.B. It’s a quarter to nine.C. It’s half past.D. It’s o’clock.', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}, {'q': 'Question 20: A: What time is it now?', 'choices': ['A. ...', 'B. ...', 'C. ...', 'D. ...']}];
+const correctAnswers = Array(40).fill("A");
+let totalTime = TOTAL_SECONDS, timerInterval=null;
+function qs(sel){return document.querySelector(sel)}
+function buildQuestions(){
+  const container = qs("#questionsContainer");
+  questions.forEach((item, idx) => {
+    const qDiv = document.createElement("div");
+    qDiv.className = "question";
+    qDiv.id = "q" + (idx+1);
+    let html = `<p><strong>${item.q}</strong></p><div class="choices">`;
+    item.choices.forEach((c, j) => {
+      const choiceVal = ["A","B","C","D"][j];
+      html += `<label><input type="radio" name="q${idx+1}" value="${choiceVal}"> ${c}</label>`;
+    });
+    html += `</div>`;
+    qDiv.innerHTML = html;
+    container.appendChild(qDiv);
+  });
+}
+function updateTimerDisplay(){
+  const el = qs("#timer");
+  let m = Math.floor(totalTime/60);
+  let s = totalTime%60;
+  el.textContent = `${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+}
+function startTimer(){
+  qs("#timer").style.display = "block";
+  updateTimerDisplay();
+  timerInterval = setInterval(()=>{
+    totalTime--;
+    if(totalTime<=0){ clearInterval(timerInterval); submitQuiz(); qs("#timer").textContent = "Hết giờ!";}
+    else updateTimerDisplay();
+  },1000);
+}
+function submitQuiz(){
+  if(timerInterval) clearInterval(timerInterval);
+  const name = qs("#studentName").value || "Chưa nhập";
+  const lop = qs("#studentClass").value || "Chưa nhập";
+  let score = 0;
+  questions.forEach((_, i)=>{
+    const sel = document.querySelector('input[name="q'+(i+1)+'"]:checked');
+    const user = sel ? sel.value : "-";
+    if(user === correctAnswers[i]) score++;
+  });
+  const percent = Math.round((score/questions.length)*100);
+  const diem10 = (score/questions.length)*10;
+  qs("#result").style.display = "block";
+  qs("#result").innerHTML = `Họ tên: <strong>${name}</strong> — Lớp: <strong>${lop}</strong><br>Số câu đúng: <strong>${score}/${questions.length}</strong> (${percent}%) — Điểm: <strong>${diem10.toFixed(2)}/10</strong>`;
+  qs("#downloadBtn").style.display = "inline-block";
+  qs("#sendEmailBtn").style.display = "inline-block";
+}
+function downloadCSV(){
+  const rows = [["Họ tên", qs("#studentName").value], ["Lớp", qs("#studentClass").value]];
+  const csv = rows.map(r => r.join(",")).join("\n");
+  const blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = "Ket_qua.csv"; a.click();
+}
+function sendEmail(){
+  const name = qs("#studentName").value || "Chưa nhập";
+  const lop = qs("#studentClass").value || "Chưa nhập";
+  const scoreText = qs("#result").innerText || "";
+  const body = `Kết quả kiểm tra - ${name} (${lop})%0D%0A%0D%0A${encodeURIComponent(scoreText)}`;
+  const mailto = `mailto:${TEACHER_EMAIL}?subject=${encodeURIComponent("Kết quả kiểm tra - " + name + " ("+lop+")")}&body=${body}`;
+  window.location.href = mailto;
+}
+function init(){
+  buildQuestions();
+  qs("#startBtn").addEventListener("click", ()=>{
+    qs("#preStart").style.display = "none";
+    qs("#quizForm").style.display = "block";
+    startTimer();
+  });
+}
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
